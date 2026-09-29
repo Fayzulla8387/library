@@ -3,9 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kitob-Aylanma — Kitob almashish va ijaraga berish</title>
+<title>Kitob-Aylanma — Kitob almashing, ijaraga bering ,soting yoki bepulga bering</title>
 <meta name="description" content="O'zbekiston uchun kitob almashish, bepul berish va ijaraga berish platformasi" />
 
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E">
 <!-- Tailwind CSS (CDN) -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -114,6 +115,7 @@
             <option value="almashish">Almashish uchun</option>
             <option value="bepul">Bepul / Donorlik</option>
             <option value="ijara">Ijaraga</option>
+            <option value="sotish">Sotiladi</option>
           </select>
           <select id="filter-genre" class="px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white">
             <option value="">Barcha janrlar</option>
@@ -175,17 +177,28 @@
           <label class="block text-sm font-medium text-stone-700 mb-1.5">Turi *</label>
           <select required name="type" id="type-select" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white">
             <option value="almashish">Almashish uchun</option>
-            <option value="bepul">Bepul / Donorlik</option>
+            <option value="bepul">Bepul</option>
             <option value="ijara">Ijaraga</option>
+            <option value="sotish">Sotiladi</option>
           </select>
         </div>
         <div id="rent-price-wrap" class="hidden">
-          <label class="block text-sm font-medium text-stone-700 mb-1.5">Ijara narxi (kunига, so'm) *</label>
+          <label class="block text-sm font-medium text-stone-700 mb-1.5">Ijara narxi (kuniga, so'm) *</label>
           <input name="rent_price" type="number" min="0" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="5000" />
+        </div>
+        <div id="sale-price-wrap" class="hidden">
+          <label class="block text-sm font-medium text-stone-700 mb-1.5">Sotish narxi (so'm) *</label>
+          <input name="sale_price" type="number" min="0" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="30000" />
         </div>
 
         <div class="sm:col-span-2">
-          <label class="block text-sm font-medium text-stone-700 mb-1.5">Muqova rasmi (havola URL)</label>
+          <label class="block text-sm font-medium text-stone-700 mb-1.5">Muqova rasmi (ixtiyoriy)</label>
+          <input id="cover-file" type="file" accept="image/*" class="block w-full text-sm text-stone-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:text-emerald-800 file:font-medium hover:file:bg-emerald-100" />
+          <div id="cover-preview-wrap" class="hidden mt-3 flex items-end gap-3">
+            <img id="cover-preview" alt="Muqova ko'rinishi" class="w-20 book-cover object-cover rounded-lg border border-stone-200" />
+            <button type="button" id="cover-remove" class="text-xs text-red-600 hover:underline">Rasmni olib tashlash</button>
+          </div>
+          <label class="block text-xs font-medium text-stone-500 mt-3 mb-1.5">yoki rasm havolasi (URL)</label>
           <input name="cover_url" type="url" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="https://..." />
         </div>
 
@@ -282,6 +295,7 @@
         <input required name="password" type="password" minlength="6" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="Kamida 6 ta belgi" />
       </div>
       <div id="auth-phone-wrap" class="hidden grid grid-cols-2 gap-3">
+        <p class="col-span-2 text-xs text-stone-500">Bog'lanish uchun <b>telefon yoki Telegramdan kamida bittasini</b> kiriting *</p>
         <div>
           <label class="block text-sm font-medium text-stone-700 mb-1.5">Telefon</label>
           <input name="phone" type="tel" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="+998 90 123 45 67" />
@@ -304,9 +318,40 @@
   </div>
 </div>
 
+<!-- ============ PROFILE / CONTACT MODAL ============ -->
+<div id="profile-modal" class="hidden fixed inset-0 z-50 modal-backdrop items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 sm:p-7 animate-fade">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="font-serif text-xl font-semibold text-emerald-950">Kontakt ma'lumotlarim</h3>
+      <button data-close-modal="profile-modal" class="p-1.5 rounded-lg hover:bg-stone-100 text-stone-500">&#10005;</button>
+    </div>
+    <p id="profile-modal-note" class="text-sm text-stone-500 mb-4"></p>
+    <form id="profile-form" class="space-y-3">
+      <div>
+        <label class="block text-sm font-medium text-stone-700 mb-1.5">To'liq ism *</label>
+        <input name="full_name" type="text" required class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-stone-700 mb-1.5">Telefon</label>
+          <input name="phone" type="tel" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="+998 90 123 45 67" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-stone-700 mb-1.5">Telegram</label>
+          <input name="telegram_username" type="text" class="w-full px-3 py-2.5 rounded-xl border border-stone-200 bg-stone-50 text-sm focus:bg-white" placeholder="@username" />
+        </div>
+      </div>
+      <p class="text-xs text-stone-400">Kamida bittasi majburiy. Kontaktingiz faqat tizimga kirgan foydalanuvchilarga ko'rinadi.</p>
+      <p id="profile-error" class="hidden text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2"></p>
+      <button type="submit" id="profile-submit-btn" class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-semibold transition-colors">Saqlash</button>
+    </form>
+  </div>
+</div>
+
 <!-- ============ BOOK DETAIL / REQUEST MODAL ============ -->
 <div id="book-modal" class="hidden fixed inset-0 z-50 modal-backdrop items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-fade">
+    <button data-close-modal="book-modal" aria-label="Yopish" class="sticky top-2 float-right mr-2 mt-2 h-8 w-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 text-lg leading-none z-10">&times;</button>
     <div id="book-modal-content" class="p-6 sm:p-7"></div>
   </div>
 </div>
